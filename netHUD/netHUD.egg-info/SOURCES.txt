@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+netHUD.egg-info/PKG-INFO
+netHUD.egg-info/SOURCES.txt
+netHUD.egg-info/dependency_links.txt
+netHUD.egg-info/entry_points.txt
+netHUD.egg-info/not-zip-safe
+netHUD.egg-info/top_level.txt
+nethud/__init__.py
