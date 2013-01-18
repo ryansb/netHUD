@@ -8,7 +8,7 @@ This is an entry in the 2013 American Greetings Hack Day, Jan 18-19 at RIT.
 Contributors
 ------------
 
--   oddshocks
--   Qalthos
--   rossdylan
--   ryansb
+-   oddshocks (David Gay)
+-   Qalthos (Nate Case)
+-   rossdylan (Ross Delinger)
+-   ryansb (Ryan Brown)
