@@ -166,6 +166,10 @@ class TelnetConnection(LineReceiver):
             output.append("|" + left[index] + " " * (38 - len(left[index])) + "|" +
                           "|" + right[index] + " " * (38 - len(right[index])) + "|")
         output.append('#' + '=' * 78 + '#')
+
+        # But first, make sure the screen is clear!
+        for i in range(30):
+            self.sendLine('')
         for line in output:
             self.sendLine(line.encode('utf8'))
 
