@@ -18,6 +18,7 @@ class TelnetConnection(LineReceiver):
         self.input_handlers = {'display': self.display,
                                'display_objects': self.objects}
         self.status = {}
+        self.inventory = []
 
        # Container for all the cool things on the level
         self.details = []
@@ -73,7 +74,6 @@ class TelnetConnection(LineReceiver):
 
         status_line = ''
         messages = []
-        inventory = []
         pois = defaultdict(list)
 
         for packet in display_data:
@@ -105,7 +105,7 @@ class TelnetConnection(LineReceiver):
             if packet.get('raw_print'):
                 messages.append(packet['raw_print'])
             if packet.get('list_items'):
-                inventory = self.objects(packet['list_items'])
+                self.inventory = self.objects(packet['list_items'])
 
         for x_index, col in enumerate(self.details):
             if isinstance(col, list):
@@ -117,7 +117,7 @@ class TelnetConnection(LineReceiver):
                                 thing = key_type[cell[index]][0]
                                 pois[key_type[0]].append("There is a {0} ({1}) at {2},{3}"
                                     .format(char, thing, x_index, y_index))
-        self.fancy_display(status_line, messages, inventory, pois)
+        self.fancy_display(status_line, messages, self.inventory, pois)
 
     def objects(self, objects):
         """
