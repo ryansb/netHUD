@@ -22,6 +22,7 @@ class NethackClient(protocol.Protocol):
 
     def connectionMade(self):
         self.factory.register_client(self)
+        self.register_call('display', 'display')
         self._run_next_command()
 
     def dataReceived(self, data):
@@ -65,16 +66,18 @@ class NethackClient(protocol.Protocol):
 
     # Nethack response methods
     def display(self, display_data):
-        for x_index, col in enumerate(display_data['update_screen']['dbuf']):
-            if isinstance(col, list):
-                for y_index, cell in enumerate(col):
-                    if isinstance(cell, list):
-                        coords = "{0},{1}".format(x_index, y_index)
-                        monster[coords] = cell[5]
+        for packet in display_data:
+            if packet.get('update_screen'):
+                for x_index, col in enumerate(packet['update_screen']['dbuf']):
+                    if isinstance(col, list):
+                        for y_index, cell in enumerate(col):
+                            if isinstance(cell, list):
+                                coords = "{0},{1}".format(x_index, y_index)
+                                self.monsters[coords] = cell[5]
 
-        for key, monster in monsters.items():
+        for key, monster in self.monsters.items():
             if monster == 0:
-                del monsters[key]
+                del self.monsters[key]
             else:
                 print "There is a {0} at {1}".format(monster, key)
 
@@ -126,9 +129,9 @@ def test(factory):
         else:
             client.queue_command("start_game", alignment=0, gender=1,
                                  name="herpderp", race=0, role=0, mode=0)
-        #~ client.queue_command("get_drawing_info")
+        client.queue_command("get_drawing_info")
         client.queue_command("exit_game", exit_type=2)
-        client.queue_command("shutdown")
+        #~ client.queue_command("shutdown")
 
     client.games_queue.get().addCallback(restore_or_start)
 
