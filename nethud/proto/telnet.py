@@ -3,7 +3,7 @@ from __future__ import print_function
 from twisted.internet import reactor, protocol, threads, defer
 from twisted.protocols.basic import LineReceiver
 
-from nethud.proto.client import NethackFactory
+from nethud.controller import Controller
 
 
 class TelnetConnection(LineReceiver):
@@ -12,8 +12,7 @@ class TelnetConnection(LineReceiver):
         self.uname = ''
 
     def connectionLost(self, reason):
-        if NethackFactory.client:
-            NethackFactory.client.deassoc_client(self.uname)
+        Controller.disconnect_user(self.uname)
         if self.uname in self.users:
             del self.users[self.uname]
         self.uname = ''
@@ -34,8 +33,7 @@ class TelnetConnection(LineReceiver):
     def handle_auth(self, uname):
         self.users[uname] = self
         self.uname = uname
-        if NethackFactory.client:
-            NethackFactory.client.assoc_client(uname, self)
+        Controller.connect_user(uname, self.handle_data)
 
 
 
