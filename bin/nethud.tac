@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from twisted.application import service
 from twisted.application.internet import TCPServer
-from nethud.proto.tee import TeeFromClientProtocol
 from twisted.internet.protocol import Factory
+
+from nethud.proto.tee import TeeFromClientProtocol
+from nethud.proto.telnet import TelnetConnection, TelnetFactory
 
 
 class TeeService(service.Service):
@@ -14,6 +16,11 @@ class TeeService(service.Service):
         return f
 
 
+class TelnetService(service.Service):
+    def get_factory(self):
+        return TelnetFactory()
+
+
 application = service.Application('nethud')
 
 s = TeeService()
@@ -21,3 +28,7 @@ s = TeeService()
 serviceCollection = service.IServiceCollection(application)
 TCPServer(12435, s.getFactory(), interface="0.0.0.0"
           ).setServiceParent(serviceCollection)
+
+tns = TelnetService()
+TCPServer(2323, tns.get_factory(), interface='0.0.0.0') \
+    .setServiceParent(serviceCollection)
