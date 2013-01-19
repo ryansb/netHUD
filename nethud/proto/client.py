@@ -9,6 +9,7 @@ from threading import Event
 from twisted.internet import reactor, protocol, threads, defer
 
 from nethud.dpqueue import DeferredPriorityQueue
+from nethud.util.monst import lookup_monster
 
 
 class NethackClient(protocol.Protocol):
@@ -79,7 +80,7 @@ class NethackClient(protocol.Protocol):
             if monster == 0:
                 del self.monsters[key]
             else:
-                print "There is a {0} at {1}".format(monster, key)
+                print "There is a {0} at {1}".format(lookup_monster(monster), key)
 
     def assume_y(self, _):
         self.queue_command("yn", priority=0, **{'return': 121})
