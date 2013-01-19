@@ -86,6 +86,8 @@ class TeeToNetHackProtocol(Protocol):
         elif "auth" in data and self.authPacket:
             self.authPacket.update(json.loads(data)['auth'])
             self.hud_queue.put(json.dumps(self.authPacket))
+        else:
+            self.hud_queue.put(data)
 
 
 class TeeToHUDController(object):
