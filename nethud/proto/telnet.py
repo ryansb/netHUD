@@ -143,7 +143,7 @@ class TelnetConnection(LineReceiver):
                 left.append(line[:38])
                 line = line[38:]
             left.append(line)
-            left.append("=" * 16 + "NEARBY" + "=" * 16)
+        left.append("=" * 16 + "NEARBY" + "=" * 16)
         for type_ in pois:
             left.append("--" + type_)
             for line in pois[type_]:
