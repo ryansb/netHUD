@@ -3,6 +3,7 @@ try:
 except ImportError:
     import json
 
+
 class Controller(object):
     users = {}
     cached_details = {}
@@ -18,10 +19,8 @@ class Controller(object):
             data = json.loads(msg)
             if 'display' in data.keys():
                 if not Controller.cached_details.get(user):
-                    Controller.cached_details[user] = {}:
+                    Controller.cached_details[user] = {}
                 Controller.cached_details[user].update(data['display'])
-
-
 
     @staticmethod
     def connect_user(user, handle_function):
