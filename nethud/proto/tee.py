@@ -2,7 +2,9 @@ from __future__ import unicode_literals
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 
-
+"""
+NOTE: This is heavily inspired by https;//gist.github.com/1878983
+"""
 #Make sure to send auth to Nethud with both the client and sever json
 
 class TeeFromClientProtocol(Protocol):
