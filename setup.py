@@ -23,5 +23,7 @@ setup(name='netHUD',
       ],
       entry_points="""
       # -*- Entry points: -*-
+      [console_scripts]
+      nethud_tee = nethud:run_tee
       """,
       )
