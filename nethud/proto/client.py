@@ -17,6 +17,8 @@ class NethackClient(protocol.Protocol):
     method_calls = {}
     command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
+    monsters = {}
+    data_buffer = ''
 
     def connectionMade(self):
         self.factory.register_client(self)
@@ -24,8 +26,16 @@ class NethackClient(protocol.Protocol):
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
-        print "Server said:", data
-        data = json.loads(data)
+        #~ print "Server said:", data
+        if self.data_buffer:
+            data = self.data_buffer + data
+            self.data_buffer = ''
+        try:
+            data = json.loads(data)
+        except ValueError:
+            # We probably just didn't get all of it
+            self.data_buffer = data
+            return
         for ret_key in data:
             if ret_key in self.method_calls:
                 self.method_calls[ret_key](data[ret_key])
@@ -54,7 +64,19 @@ class NethackClient(protocol.Protocol):
         print "Client says:", data
 
     # Nethack response methods
+    def display(self, display_data):
+        for x_index, col in enumerate(display_data['update_screen']['dbuf']):
+            if isinstance(col, list):
+                for y_index, cell in enumerate(col):
+                    if isinstance(cell, list):
+                        coords = "{0},{1}".format(x_index, y_index)
+                        monster[coords] = cell[5]
 
+        for key, monster in monsters.items():
+            if monster == 0:
+                del monsters[key]
+            else:
+                print "There is a {0} at {1}".format(monster, key)
 
     def assume_y(self, _):
         self.queue_command("yn", priority=0, **{'return': 121})
@@ -103,9 +125,10 @@ def test(factory):
             client.queue_command("restore_game", gameid=gameid)
         else:
             client.queue_command("start_game", alignment=0, gender=1,
-                                 name="herpderp", race=0, role=0, mode=2)
-        #~ client.command_queue.append(("get_drawing_info"))
+                                 name="herpderp", race=0, role=0, mode=0)
+        #~ client.queue_command("get_drawing_info")
         client.queue_command("exit_game", exit_type=2)
+        client.queue_command("shutdown")
 
     client.games_queue.get().addCallback(restore_or_start)
 
