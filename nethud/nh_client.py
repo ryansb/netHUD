@@ -14,7 +14,13 @@ class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     def connectionMade(self):
-        self.send_message('auth', username='Qalthos', password='password')
+        running = True
+        self.send_message("auth", username="rossdylan", password="herpderp")
+        self.send_message("start_game", alignment=0, gender=0, name="herpderp",
+                          race=0, role=0)
+        self.send_message("get_roles")
+        self.send_message("exit_game", exit_type=2)
+        #~ self.transport.loseConnection()
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
