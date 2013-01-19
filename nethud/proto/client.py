@@ -76,6 +76,8 @@ class NethackClient(protocol.Protocol):
                             if isinstance(cell, list):
                                 coords = "{0},{1}".format(x_index, y_index)
                                 self.monsters[coords] = cell[5]
+            if packet.get('print_message_nonblocking'):
+                print packet['print_message_nonblocking']['msg']
 
         for key, monster in self.monsters.items():
             if monster == 0:
