@@ -2,6 +2,7 @@
 An example client. Run simpleserv.py first before running this.
 """
 from __future__ import unicode_literals
+from collections import defaultdict
 
 import json
 
@@ -69,9 +70,9 @@ class NethackClient(protocol.Protocol):
 
     # Nethack response methods
     def set_info(self, keys):
-        self.detail_keys[3] = keys['traps']
-        self.detail_keys[3] = keys['objects']
-        self.detail_keys[5] = keys['monsters']
+        self.detail_keys[2] = ['Traps'] + keys['traps']
+        self.detail_keys[3] = ['Objects'] + keys['objects']
+        self.detail_keys[5] = ['Monsters'] + keys['monsters']
 
     def display(self, display_data):
         for packet in display_data:
@@ -106,10 +107,10 @@ class NethackClient(protocol.Protocol):
                     if isinstance(cell, list):
                         for index, key_type in enumerate(self.detail_keys):
                             if key_type and cell[index]:
-                                char = chr(key_type[cell[index]-1][1])
-                                thing = key_type[cell[index]-1][0]
-                                print "There is a {0} ({1}) at {2},{3}" \
-                                    .format(char, thing, x_index, y_index)
+                                char = chr(key_type[cell[index]][1])
+                                thing = key_type[cell[index]][0]
+                                pois[key_type[0]].append("There is a {0} ({1}) at {2},{3}"
+                                    .format(char, thing, x_index, y_index))
 
     def objects(self, objects):
         print "****************************"
