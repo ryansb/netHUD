@@ -16,7 +16,10 @@ class TelnetConnection(LineReceiver):
         self.auth = False
         self.data_buffer = ''
         self.input_handlers = {'display': self.display,
-                          'display_objects': self.objects}
+                               'display_objects': self.objects}
+
+        # Container for all the cool things on the level
+        self.details = []
 
     # Twistedy methods!
     def connectionLost(self, reason):
