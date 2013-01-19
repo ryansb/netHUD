@@ -39,7 +39,7 @@ class TelnetConnection(LineReceiver):
 
 
 
-def TelnetFactory(protocol.Factory):
+class TelnetFactory(protocol.Factory):
     def __init__(self):
         self.users = {}
 
