@@ -95,6 +95,8 @@ class NethackClient(protocol.Protocol):
                 print packet['print_message']['msg']
             if packet.get('print_message_nonblocking'):
                 print packet['print_message_nonblocking']['msg']
+            if packet.get('raw_print'):
+                print packet['raw_print']
             if packet.get('list_items'):
                 self.objects(packet['list_items'])
 
