@@ -5,7 +5,7 @@ import json
 
 
 """
-NOTE: This is heavily inspired by https;//gist.github.com/1878983
+NOTE: This is heavily inspired by https://gist.github.com/1878983
 """
 #Make sure to send auth to Nethud with both the client and sever json
 
