@@ -14,22 +14,37 @@ class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     def connectionMade(self):
-        running = True
-        self.send_message("auth", username="rossdylan", password="herpderp")
-        self.send_message("start_game", alignment=0, gender=0, name="herpderp",
-                          race=0, role=0)
-        self.send_message("get_roles")
-        self.send_message("exit_game", exit_type=2)
-        #~ self.transport.loseConnection()
+        self.command_queue = []
+        self.command_queue.append(("auth", dict(username="rossdylan",
+                                                password="herpderp")))
+        # gender = [male, female, neuter]
+        #~ self.command_queue.append(("get_pl_prompt", dict(align=-1, gend=0,
+                                                      #~ race=-1, role=-1)))
+        self.command_queue.append(("start_game", dict(alignment=0, gender=1,
+                                                      name="herpderp", race=0,
+                                                      role=0, mode=2)))
+        #~ self.command_queue.append(("list_games", dict(completed=False, limit=5, show_all=True)))
+        #~ self.command_queue.append(("get_roles", dict()))
+        #~ self.command_queue.append(("exit_game", dict(exit_type=2)))
+
+        self.exec_next_command()
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
         print "Server said:", data
+        if self.command_queue:
+            self.exec_next_command()
+        else:
+            self.transport.loseConnection()
 
     def connectionLost(self, reason):
         print "Connection lost"
 
     # Nethack Protocol Wrapper
+    def exec_next_command(self):
+        comm = self.command_queue.pop(0)
+        self.send_message(comm[0], **comm[1])
+
     def send_message(self, command, **kw):
         data = json.dumps({command: kw})
         print "Client says:", data
