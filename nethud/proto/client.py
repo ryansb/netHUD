@@ -14,6 +14,7 @@ class NethackClient(protocol.Protocol):
 
     method_calls = {}
     command_queue = defer.DeferredQueue()
+    games_queue = defer.DeferredQueue()
 
     def connectionMade(self):
         self.factory.register_client(self)
