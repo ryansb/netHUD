@@ -19,8 +19,9 @@ class NethackClient(protocol.Protocol):
     method_calls = {}
     command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
-    monsters = {}
-    items = {}
+    details = []
+    detail_keys = [None] * 10
+
     data_buffer = ''
 
     def connectionMade(self):
@@ -69,29 +70,35 @@ class NethackClient(protocol.Protocol):
         print "Client says:", data
 
     # Nethack response methods
+    def set_info(self, keys):
+        self.detail_keys[3] = keys['traps']
+        self.detail_keys[3] = keys['objects']
+        self.detail_keys[5] = keys['monsters']
+
     def display(self, display_data):
         for packet in display_data:
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
-                    if isinstance(col, list):
+                    if x_index >= len(self.details):
+                        self.details.append(col)
+                        continue
+                    elif isinstance(col, list):
                         for y_index, cell in enumerate(col):
-                            if isinstance(cell, list):
-                                coords = "{0},{1}".format(x_index, y_index)
-                                self.items[coords] = cell[3]
-                                self.monsters[coords] = cell[5]
+                            if isinstance(cell, list) or cell == 0:
+                                self.details[x_index][y_index] = cell
+                    elif col == 0:
+                        self.details[x_index] = col
             if packet.get('print_message_nonblocking'):
                 print packet['print_message_nonblocking']['msg']
 
-        for key, item in self.items.items():
-            if item == 0:
-                del self.items[key]
-            else:
-                print "There is a {0} at {1}".format(lookup_object(item), key)
-        for key, monster in self.monsters.items():
-            if monster == 0:
-                del self.monsters[key]
-            else:
-                print "There is a {0} at {1}".format(lookup_monster(monster), key)
+        for x_index, col in enumerate(self.details):
+            if isinstance(col, list):
+                for y_index, cell in enumerate(col):
+                    if isinstance(cell, list):
+                        for index, key_type in enumerate(self.detail_keys):
+                            if key_type and cell[index]:
+                                thing = key_type[cell[index]-1][0]
+                                print "There is a {0} at {1},{2}".format(thing, x_index, y_index)
 
     def objects(self, objects):
         for item in objects['items']:
@@ -137,7 +144,8 @@ def test(factory):
 
     # Create a game, then exit.
     client.queue_command("auth", username="Qalthos", password="password")
-    client.queue_command("list_games", completed=0, limit=0, show_all=1)
+    client.queue_command("get_drawing_info")
+    client.queue_command("list_games", completed=0, limit=0, show_all=0)
 
     def restore_or_start(gameid):
         if gameid:
@@ -145,8 +153,8 @@ def test(factory):
         else:
             client.queue_command("start_game", alignment=0, gender=1,
                                  name="herpderp", race=0, role=0, mode=0)
-        client.queue_command("get_drawing_info")
-        client.queue_command("exit_game", exit_type=0)
+
+        client.queue_command("exit_game", exit_type=1)
         client.queue_command("shutdown")
 
     client.games_queue.get().addCallback(restore_or_start)
