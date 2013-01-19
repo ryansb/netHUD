@@ -13,7 +13,10 @@ from twisted.internet import reactor, protocol
 class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
+    method_calls = {}
+
     def connectionMade(self):
+        self.factory.register_client(self)
         self.command_queue = []
         self.command_queue.append(("auth", dict(username="rossdylan",
                                                 password="herpderp")))
@@ -32,27 +35,55 @@ class NethackClient(protocol.Protocol):
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
         print "Server said:", data
-        if self.command_queue:
-            self.exec_next_command()
-        else:
-            self.transport.loseConnection()
+        data = json.loads(data)
+        for ret_key in data:
+            if ret_key in self.method_calls:
+                self.method_calls[ret_key](data[ret_key])
+        self._run_next_command()
 
     def connectionLost(self, reason):
         print "Connection lost"
+        self.factory.remove_client(self)
+
+    def register_call(self, name, function):
+        self.method_calls[name] = getattr(self, function)
+
+    def _run_next_command(self):
+        self.command_queue.get().addCallback(self.exec_command)
+
+    def queue_command(self, command, **kw):
+        self.command_queue.put((command, kw))
+
+    def exec_command(self, command_tuple):
+        self.send_message(command_tuple[0], **command_tuple[1])
 
     # Nethack Protocol Wrapper
-    def exec_next_command(self):
-        comm = self.command_queue.pop(0)
-        self.send_message(comm[0], **comm[1])
-
     def send_message(self, command, **kw):
         data = json.dumps({command: kw})
-        print "Client says:", data
         self.transport.write(data.encode('utf8'))
+        print "Client says:", data
+
+    # Nethack response methods
+
+
+    def assume_y(self, _):
+        self.send_message("yn", **{'return': 121})
+
+    def store_current_games(self, gamelist):
+        for game in gamelist['games']:
+            self.games_queue.put(game['gameid'])
+        self.games_queue.put(False)
 
 
 class NethackFactory(protocol.ClientFactory):
     protocol = NethackClient
+    clients = []
+
+    def register_client(self, client):
+        self.clients.append(client)
+
+    def remove_client(self, client):
+        self.clients.remove(client)
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed - goodbye!"
@@ -63,10 +94,18 @@ class NethackFactory(protocol.ClientFactory):
         reactor.stop()
 
 
+def test(factory):
+    if not factory.clients:
+        reactor.callLater(2, test, factory)
+        return
+    client = factory.clients[0]
+
+
 # this connects the protocol to a server runing on port 8000
 def main():
     f = NethackFactory()
     reactor.connectTCP("games-ng.csh.rit.edu", 53421, f)
+    reactor.callLater(0, test, f)
     reactor.run()
 
 # this only runs if the module was *not* imported
