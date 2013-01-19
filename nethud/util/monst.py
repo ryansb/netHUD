@@ -1,4 +1,5 @@
 monster_list = [
+    "list is one-indexed",
     "giant ant",
     "killer bee",
     "soldier ant",

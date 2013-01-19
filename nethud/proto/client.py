@@ -10,6 +10,7 @@ from twisted.internet import reactor, protocol, threads, defer
 
 from nethud.dpqueue import DeferredPriorityQueue
 from nethud.util.monst import lookup_monster
+from nethud.util.objects import lookup_object
 
 
 class NethackClient(protocol.Protocol):
@@ -19,6 +20,7 @@ class NethackClient(protocol.Protocol):
     command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
     monsters = {}
+    items = {}
     data_buffer = ''
 
     def connectionMade(self):
@@ -75,10 +77,16 @@ class NethackClient(protocol.Protocol):
                         for y_index, cell in enumerate(col):
                             if isinstance(cell, list):
                                 coords = "{0},{1}".format(x_index, y_index)
+                                self.items[coords] = cell[3]
                                 self.monsters[coords] = cell[5]
             if packet.get('print_message_nonblocking'):
                 print packet['print_message_nonblocking']['msg']
 
+        for key, item in self.items.items():
+            if item == 0:
+                del self.items[key]
+            else:
+                print "There is a {0} at {1}".format(lookup_object(item), key)
         for key, monster in self.monsters.items():
             if monster == 0:
                 del self.monsters[key]
