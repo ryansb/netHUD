@@ -4,13 +4,10 @@ An example client. Run simpleserv.py first before running this.
 from __future__ import unicode_literals
 
 import json
-from threading import Event
 
 from twisted.internet import reactor, protocol, threads, defer
 
 from nethud.dpqueue import DeferredPriorityQueue
-from nethud.util.monst import lookup_monster
-from nethud.util.objects import lookup_object
 
 
 class NethackClient(protocol.Protocol):
@@ -27,6 +24,7 @@ class NethackClient(protocol.Protocol):
     def connectionMade(self):
         self.factory.register_client(self)
         self.register_call('display', 'display')
+        self.register_call('get_drawing_info', 'set_info')
         self.register_call('display_objects', 'objects')
         self._run_next_command()
 
@@ -67,7 +65,7 @@ class NethackClient(protocol.Protocol):
     def send_message(self, command, **kw):
         data = json.dumps({command: kw})
         self.transport.write(data.encode('utf8'))
-        print "Client says:", data
+        #~ print "Client says:", data
 
     # Nethack response methods
     def set_info(self, keys):
@@ -90,6 +88,9 @@ class NethackClient(protocol.Protocol):
                         self.details[x_index] = col
             if packet.get('print_message_nonblocking'):
                 print packet['print_message_nonblocking']['msg']
+            if packet.get('list_items'):
+                for item in packet['list_items']['items']:
+                    print item[0]
 
         for x_index, col in enumerate(self.details):
             if isinstance(col, list):
