@@ -91,15 +91,15 @@ class TeeToNetHackProtocol(Protocol):
             self.data_buffer = data
             return
 
-        self.outgoing_queue.put(data)
-        jData = json.loads(data)
+        self.outgoing_queue.put(json.dumps(data))
+        jData = data
         if "auth" in jData and not self.authPacket:
             self.authPacket = jData
         elif "auth" in jData and self.authPacket:
             self.authPacket.update(jData['auth'])
             self.hud_queue.put(json.dumps(self.authPacket))
         else:
-            self.hud_queue.put(data)
+            self.hud_queue.put(json.dumps(data))
 
 
 class TeeToHUDController(object):
