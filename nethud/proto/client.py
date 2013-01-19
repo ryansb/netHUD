@@ -14,6 +14,7 @@ from nethud.dpqueue import DeferredPriorityQueue
 class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
+    users = {}
     method_calls = {}
     command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
@@ -65,6 +66,13 @@ class NethackClient(protocol.Protocol):
 
     def exec_command(self, command_tuple):
         self.send_message(command_tuple[0], **command_tuple[1])
+
+    # Register/deregister Telnet sinks per user
+    def assoc_client(self, uname, telnet_protocol):
+        self.users[uname] = telnet_protocol
+
+    def deassoc_client(self, uname):
+        del self.users[uname]
 
     # Nethack Protocol Wrapper
     def send_message(self, command, **kw):
@@ -122,12 +130,13 @@ class NethackClient(protocol.Protocol):
                                     .format(char, thing, x_index, y_index))
         self.fancy_display(status_line, messages, inventory, pois)
 
-    def fancy_display(self, status, messages, inventory, pois):
+    def fancy_display(self, user, status, messages, inventory, pois):
         """Overelaborate display for status."""
-        print '#' + '=' * 36 + "STATUS" + "=" * 36 + '#'
-        print '|' + status + ' ' * (78 - len(status)) + '|'
-        print '#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' \
-              '#' + '=' * 15 + "INVENTORY" + "=" * 14 + '#'
+        out_func = self.users[user].sendLine
+        out_func('#' + '=' * 36 + "STATUS" + "=" * 36 + '#')
+        out_func('|' + status + ' ' * (78 - len(status)) + '|')
+        out_func('#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' +
+                 '#' + '=' * 15 + "INVENTORY" + "=" * 14 + '#')
         left = []
         right = []
         for line in messages:
@@ -154,9 +163,9 @@ class NethackClient(protocol.Protocol):
             left.extend([''] * (len(right) - len(left)))
         for index in range(len(left)):
             min_r = min(len(right[index]), 38)
-            print "|" + left[index] + " " * (38 - len(left[index])) + "|" +\
-                  "|" + right[index] + " " * (38 - len(right[index])) + "|"
-        print '#' + '=' * 78 + '#'
+            out_func("|" + left[index] + " " * (38 - len(left[index])) + "|" +
+                     "|" + right[index] + " " * (38 - len(right[index])) + "|")
+        out_func('#' + '=' * 78 + '#')
 
     def objects(self, objects):
         inv = ["Your inventory contains:"]
@@ -177,13 +186,13 @@ class NethackClient(protocol.Protocol):
 
 class NethackFactory(protocol.ClientFactory):
     protocol = NethackClient
-    clients = []
+    client = None
 
     def register_client(self, client):
-        self.clients.append(client)
+        client = client
 
     def remove_client(self, client):
-        self.clients.remove(client)
+        client = None
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed - goodbye!"
@@ -195,18 +204,17 @@ class NethackFactory(protocol.ClientFactory):
 
 
 def test(factory):
-    if not factory.clients:
+    if not factory.client:
         reactor.callLater(2, test, factory)
         return
-    client = factory.clients[0]
+    client = factory.client
 
     # Force yn prompts to respond with y
     client.register_call('yn', 'assume_y')
     client.register_call('list_games', 'store_current_games')
 
     # Create a game, then exit.
-    client.queue_command("auth", username="tonisbones", password="harpy")
-    #~ client.queue_command("auth", username="Qalthos", password="password")
+    client.queue_command("auth", username="Qalthos", password="password")
     client.queue_command("get_drawing_info")
     client.queue_command("list_games", completed=0, limit=0, show_all=0)
 
