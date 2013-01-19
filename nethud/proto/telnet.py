@@ -95,8 +95,8 @@ class TelnetConnection(LineReceiver):
                         self.details[x_index] = col
             if packet.get('print_message'):
                 messages.append(packet['print_message']['msg'])
-            if packet.get('print_message_nonblocking'):
-                messages.append(packet['print_message_nonblocking']['msg'])
+            #~ if packet.get('print_message_nonblocking'):
+                #~ messages.append(packet['print_message_nonblocking']['msg'])
             if packet.get('raw_print'):
                 messages.append(packet['raw_print'])
             if packet.get('list_items'):
