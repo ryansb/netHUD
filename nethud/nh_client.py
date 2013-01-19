@@ -24,7 +24,7 @@ class NethackClient(protocol.Protocol):
 
     # Nethack Protocol Wrapper
     def send_message(self, command, **kw):
-        data = json.dumps(dict(command=kw))
+        data = json.dumps({command: kw})
         print "Client says:", data
         self.transport.write(data)
 
