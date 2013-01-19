@@ -225,8 +225,8 @@ def test(factory):
             client.queue_command("start_game", alignment=0, gender=0,
                                  name="herpderp", race=0, role=0, mode=0)
 
-        client.queue_command("exit_game", exit_type=1)
-        client.queue_command("shutdown")
+        #~ client.queue_command("exit_game", exit_type=1)
+        #~ client.queue_command("shutdown")
 
     client.games_queue.get().addCallback(restore_or_start)
 
