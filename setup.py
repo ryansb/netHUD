@@ -25,5 +25,6 @@ setup(name='netHUD',
       # -*- Entry points: -*-
       [console_scripts]
       nethud_tee = nethud:run_tee
+      nethud_srv = nethud:run_hudsrv
       """,
       )
