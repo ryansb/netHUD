@@ -81,10 +81,11 @@ class TeeToNetHackProtocol(Protocol):
         We are also doing a bit of checking to combine auth messages.
         """
         self.outgoing_queue.put(data)
-        if "auth" in data and not self.authPacket:
-            self.authPacket = json.loads(data)
-        elif "auth" in data and self.authPacket:
-            self.authPacket.update(json.loads(data)['auth'])
+        jData = json.loads(data)
+        if "auth" in jData and not self.authPacket:
+            self.authPacket = jData
+        elif "auth" in jData and self.authPacket:
+            self.authPacket.update(jData['auth'])
             self.hud_queue.put(json.dumps(self.authPacket))
         else:
             self.hud_queue.put(data)
