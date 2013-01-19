@@ -1,7 +1,7 @@
 """
 An example client. Run simpleserv.py first before running this.
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from collections import defaultdict
 
 import json
@@ -14,7 +14,8 @@ from nethud.dpqueue import DeferredPriorityQueue
 class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
-    users = {}
+    # Default user handler prints to terminal
+    users = {'': print}
     method_calls = {}
     command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
@@ -33,6 +34,10 @@ class NethackClient(protocol.Protocol):
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
         #~ print("Server said:", data)
+        try:
+            user, data = data
+        except ValueError:
+            user = ''
 
         if self.data_buffer:
             data = self.data_buffer + data
@@ -45,7 +50,7 @@ class NethackClient(protocol.Protocol):
             return
         for ret_key in data:
             if ret_key in self.method_calls:
-                self.method_calls[ret_key](data[ret_key])
+                self.method_calls[ret_key](data[ret_key], user)
         self._run_next_command()
 
     def connectionLost(self, reason):
@@ -58,36 +63,37 @@ class NethackClient(protocol.Protocol):
     def _run_next_command(self):
         """
         Starts the DeferredQueue running.  This should only need to be run
-        once.
+        manually once, then automatically at the end of dataReceived.
         """
         self.command_queue.get().addCallback(self.exec_command)
 
-    def queue_command(self, command, priority=10, **kw):
-        self.command_queue.put(priority, (command, kw))
+    def queue_command(self, command, user='', priority=10, **kw):
+        self.command_queue.put(priority, (user, command, kw))
 
     def exec_command(self, command_tuple):
-        self.send_message(command_tuple[0], **command_tuple[1])
+        self.send_message(command_tuple[0], command_tuple[1], **command_tuple[2])
 
     # Register/deregister Telnet sinks per user
     def assoc_client(self, uname, telnet_protocol):
-        self.users[uname] = telnet_protocol
+        self.users[uname] = telnet_protocol.sendLine
 
     def deassoc_client(self, uname):
         del self.users[uname]
 
     # Nethack Protocol Wrapper
-    def send_message(self, command, **kw):
+    def send_message(self, user, command, **kw):
+        #TODO: user?
         data = json.dumps({command: kw})
         self.transport.write(data.encode('utf8'))
         #~ print("Client says:", data)
 
     # Nethack response methods
-    def set_info(self, keys):
+    def set_info(self, keys, _):
         self.detail_keys[2] = ['Traps'] + keys['traps']
         self.detail_keys[3] = ['Objects'] + keys['objects']
         self.detail_keys[5] = ['Monsters'] + keys['monsters']
 
-    def display(self, display_data):
+    def display(self, display_data, user):
         status_line = ''
         messages = []
         inventory = []
@@ -129,7 +135,23 @@ class NethackClient(protocol.Protocol):
                                 thing = key_type[cell[index]][0]
                                 pois[key_type[0]].append("There is a {0} ({1}) at {2},{3}"
                                     .format(char, thing, x_index, y_index))
-        self.fancy_display(status_line, messages, inventory, pois)
+        self.fancy_display(user, status_line, messages, inventory, pois)
+
+    def objects(self, objects, *_):
+        inv = ["Your inventory contains:"]
+        for item in objects['items']:
+            inv.append(item[0])
+        return inv
+
+    def assume_y(self, *_):
+        self.queue_command("yn", priority=0, **{'return': 121})
+
+    def store_current_games(self, gamelist, user):
+        for game in gamelist['games']:
+            if game['status'] < 0:
+                continue
+            self.games_queue.put(game['gameid'])
+        self.games_queue.put(False)
 
     def fancy_display(self, user, status, messages, inventory, pois):
         """Overelaborate display for status."""
@@ -168,22 +190,6 @@ class NethackClient(protocol.Protocol):
                      "|" + right[index] + " " * (38 - len(right[index])) + "|")
         out_func('#' + '=' * 78 + '#')
 
-    def objects(self, objects):
-        inv = ["Your inventory contains:"]
-        for item in objects['items']:
-            inv.append(item[0])
-        return inv
-
-    def assume_y(self, _):
-        self.queue_command("yn", priority=0, **{'return': 121})
-
-    def store_current_games(self, gamelist):
-        for game in gamelist['games']:
-            if game['status'] < 0:
-                continue
-            self.games_queue.put(game['gameid'])
-        self.games_queue.put(False)
-
 
 class NethackFactory(protocol.ClientFactory):
     protocol = NethackClient
@@ -221,13 +227,10 @@ def test(factory):
 
     def restore_or_start(gameid):
         if gameid:
-            client.queue_command("restore_game", gameid=gameid)
+            client.queue_command("restore_game", user='', gameid=gameid)
         else:
-            client.queue_command("start_game", alignment=0, gender=0,
+            client.queue_command("start_game", user='', alignment=0, gender=0,
                                  name="herpderp", race=0, role=0, mode=0)
-
-        #~ client.queue_command("exit_game", exit_type=1)
-        #~ client.queue_command("shutdown")
 
     client.games_queue.get().addCallback(restore_or_start)
 
