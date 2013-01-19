@@ -1,11 +1,27 @@
+try:
+    import ultrajson as json
+except ImportError:
+    import json
+
 class Controller(object):
     users = {}
+    cached_details = {}
     detail_keys = [None] * 10
 
     @staticmethod
     def send_message(user, msg):
         if user in Controller.users:
+            if Controller.cached_details.get(user):
+                Controller.users[user](Controller.cached_details.get(user))
             Controller.users[user](msg)
+        else:
+            data = json.loads(msg)
+            if 'display' in data.keys():
+                if not Controller.cached_details.get(user):
+                    Controller.cached_details[user] = {}:
+                Controller.cached_details[user].update(data['display'])
+
+
 
     @staticmethod
     def connect_user(user, handle_function):
