@@ -102,7 +102,7 @@ class TeeToHUDController(object):
         jData = json.loads(data)
         if "auth" in data:
             if 'username' in jData['auth']:
-                self.user = jData['auth']['usename']
+                self.user = jData['auth']['username']
 
         if self.user != "":
             Controller.send_message(self.user, data)
