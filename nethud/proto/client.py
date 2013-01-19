@@ -75,6 +75,11 @@ class NethackClient(protocol.Protocol):
 
     def display(self, display_data):
         for packet in display_data:
+            if packet.get('update_status'):
+                status = packet['update_status']
+                print "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
+                    .format(*map(lambda x: status.get(x),
+                                 ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
                     if x_index >= len(self.details):
@@ -86,11 +91,12 @@ class NethackClient(protocol.Protocol):
                                 self.details[x_index][y_index] = cell
                     elif col == 0:
                         self.details[x_index] = col
+            if packet.get('print_message'):
+                print packet['print_message']['msg']
             if packet.get('print_message_nonblocking'):
                 print packet['print_message_nonblocking']['msg']
             if packet.get('list_items'):
-                for item in packet['list_items']['items']:
-                    print item[0]
+                self.objects(packet['list_items'])
 
         for x_index, col in enumerate(self.details):
             if isinstance(col, list):
@@ -98,10 +104,13 @@ class NethackClient(protocol.Protocol):
                     if isinstance(cell, list):
                         for index, key_type in enumerate(self.detail_keys):
                             if key_type and cell[index]:
+                                char = chr(key_type[cell[index]-1][1])
                                 thing = key_type[cell[index]-1][0]
-                                print "There is a {0} at {1},{2}".format(thing, x_index, y_index)
+                                print "There is a {0} ({1}) at {2},{3}" \
+                                    .format(char, thing, x_index, y_index)
 
     def objects(self, objects):
+        print "Your inventory contains"
         for item in objects['items']:
             print item[0]
 
