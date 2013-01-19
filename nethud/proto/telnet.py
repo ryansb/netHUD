@@ -14,8 +14,8 @@ class TelnetConnection(LineReceiver):
     def connectionLost(self, reason):
         if NethackFactory.client:
             NethackFactory.client.deassoc_client(self.uname)
-        if self.user.user_name in self.users:
-            del self.users[self.user.user_name]
+        if self.uname in self.users:
+            del self.users[self.uname]
         self.uname = ''
         print(reason)
 
@@ -27,11 +27,11 @@ class TelnetConnection(LineReceiver):
                 return
             self.handle_auth(msg_split[1])
         elif msg_split[0] == 'QUIT':
-            self.loseConnection()
+            self.transport.loseConnection()
         else:
             self.sendLine("ERR 452 Invalid Command")
 
-    def handle_auth(uname):
+    def handle_auth(self, uname):
         self.users[uname] = self
         self.uname = uname
         if NethackFactory.client:
