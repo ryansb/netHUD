@@ -42,7 +42,7 @@ class NethackFactory(protocol.ClientFactory):
 
 # this connects the protocol to a server runing on port 8000
 def main():
-    f = EchoFactory()
+    f = NethackFactory()
     reactor.connectTCP("games-ng.csh.rit.edu", 53421, f)
     reactor.run()
 
