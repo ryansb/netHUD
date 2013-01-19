@@ -14,6 +14,7 @@ class InClient(protocol.Protocol):
     users = {}
     # {connection_id: nethud.proto.client}
     clients = {}
+
     def dataReceived(self, data):
         print "Server said:", data
         # send all the things to the applicable clients
