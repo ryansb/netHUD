@@ -9,7 +9,7 @@ from twisted.internet import reactor, protocol
 
 # a client protocol
 
-class EchoClient(protocol.Protocol):
+class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     def connectionMade(self):
@@ -28,8 +28,8 @@ class EchoClient(protocol.Protocol):
         self.transport.write(data)
 
 
-class EchoFactory(protocol.ClientFactory):
-    protocol = EchoClient
+class NethackFactory(protocol.ClientFactory):
+    protocol = NethackClient
 
     def clientConnectionFailed(self, connector, reason):
         print "Connection failed - goodbye!"
