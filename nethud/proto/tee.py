@@ -65,6 +65,7 @@ class TeeToNetHackProtocol(Protocol):
         self.hud_queue = self.factory.hud_queue
         self.incoming_queue.get().addCallback(self.dataFromNetHackClient)
         self.authPacket = None
+        self.data_buffer = ""
 
     def dataFromNetHackClient(self, data):
         """
