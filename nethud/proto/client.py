@@ -75,12 +75,17 @@ class NethackClient(protocol.Protocol):
         self.detail_keys[5] = ['Monsters'] + keys['monsters']
 
     def display(self, display_data):
+        status_line = ''
+        messages = []
+        inventory = []
+        pois = defaultdict(list)
+
         for packet in display_data:
             if packet.get('update_status'):
                 status = packet['update_status']
-                print "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
+                status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
                     .format(*map(lambda x: status.get(x),
-                                 ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
+                    ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
                     if x_index >= len(self.details):
@@ -93,13 +98,13 @@ class NethackClient(protocol.Protocol):
                     elif col == 0:
                         self.details[x_index] = col
             if packet.get('print_message'):
-                print packet['print_message']['msg']
+                messages.append(packet['print_message']['msg'])
             if packet.get('print_message_nonblocking'):
-                print packet['print_message_nonblocking']['msg']
+                messages.append(packet['print_message_nonblocking']['msg'])
             if packet.get('raw_print'):
-                print packet['raw_print']
+                messages.append(packet['raw_print'])
             if packet.get('list_items'):
-                self.objects(packet['list_items'])
+                inventory = self.objects(packet['list_items'])
 
         for x_index, col in enumerate(self.details):
             if isinstance(col, list):
@@ -111,13 +116,48 @@ class NethackClient(protocol.Protocol):
                                 thing = key_type[cell[index]][0]
                                 pois[key_type[0]].append("There is a {0} ({1}) at {2},{3}"
                                     .format(char, thing, x_index, y_index))
+        self.fancy_display(status_line, messages, inventory, pois)
+
+    def fancy_display(self, status, messages, inventory, pois):
+        """Overelaborate display for status."""
+        print '*' * 80
+        print "*" + status + ' ' * (78 - len(status)) + '*'
+        print '*' * 80
+        left = []
+        right = []
+        for line in messages:
+            while len(line) > 38:
+                left.append(line[:38])
+                line = line[38:]
+            left.append(line)
+            left.append("*" * 38)
+        for type_ in pois:
+            left.append("   " + type_)
+            for line in pois[type_]:
+                while len(line) > 38:
+                    left.append(line[:38])
+                    line = line[38:]
+                left.append(line)
+        for line in inventory:
+            while len(line) > 38:
+                right.append(line[:38])
+                line = line[38:]
+            right.append(line)
+        if len(left) > len(right):
+            right.extend([''] * (len(left) - len(right)))
+        elif len(left) < len(right):
+            left.extend([''] * (len(right) - len(left)))
+        for index in range(len(left)):
+            min_r = min(len(right[index]), 38)
+            print "*" + left[index] + " " * (38 - len(left[index])) + "*" +\
+                  "*" + right[index] + " " * (38 - len(right[index])) + "*"
+        print '*' * 80
 
     def objects(self, objects):
-        print "****************************"
-        print "Your inventory contains"
+        inv = ["Your inventory contains:"]
         for item in objects['items']:
-            print item[0]
-        print "****************************"
+            inv.append(item[0])
+        return inv
 
     def assume_y(self, _):
         self.queue_command("yn", priority=0, **{'return': 121})
