@@ -17,6 +17,7 @@ class TelnetConnection(LineReceiver):
         self.data_buffer = ''
         self.input_handlers = {'display': self.display,
                                'display_objects': self.objects}
+        self.status = {}
 
        # Container for all the cool things on the level
         self.details = []
@@ -77,9 +78,9 @@ class TelnetConnection(LineReceiver):
 
         for packet in display_data:
             if packet.get('update_status'):
-                status = packet['update_status']
+                self.status.update(packet['update_status'])
                 status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
-                    .format(*map(lambda x: status.get(x),
+                    .format(*map(lambda x: self.status.get(x),
                     ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
