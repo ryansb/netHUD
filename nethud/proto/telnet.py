@@ -126,9 +126,10 @@ class TelnetConnection(LineReceiver):
 
     def fancy_display(self, status, messages, inventory, pois):
         """Overelaborate display for status."""
-        self.sendLine('#' + '=' * 36 + "STATUS" + "=" * 36 + '#')
-        self.sendLine('|' + status + ' ' * (78 - len(status)) + '|')
-        self.sendLine('#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' +
+        output = []
+        output.append('#' + '=' * 36 + "STATUS" + "=" * 36 + '#')
+        output.append('|' + status + ' ' * (78 - len(status)) + '|')
+        output.append('#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' +
                       '#' + '=' * 15 + "INVENTORY" + "=" * 14 + '#')
         left = []
         right = []
@@ -156,9 +157,11 @@ class TelnetConnection(LineReceiver):
             left.extend([''] * (len(right) - len(left)))
         for index in range(len(left)):
             min_r = min(len(right[index]), 38)
-            self.sendLine("|" + left[index] + " " * (38 - len(left[index])) + "|" +
+            output.append("|" + left[index] + " " * (38 - len(left[index])) + "|" +
                           "|" + right[index] + " " * (38 - len(right[index])) + "|")
-        self.sendLine('#' + '=' * 78 + '#')
+        output.append('#' + '=' * 78 + '#')
+        for line in output:
+            self.sendLine(line.encode('utf8'))
 
 
 class TelnetFactory(protocol.Factory):
