@@ -112,9 +112,11 @@ class NethackClient(protocol.Protocol):
                                     .format(char, thing, x_index, y_index)
 
     def objects(self, objects):
+        print "****************************"
         print "Your inventory contains"
         for item in objects['items']:
             print item[0]
+        print "****************************"
 
     def assume_y(self, _):
         self.queue_command("yn", priority=0, **{'return': 121})
