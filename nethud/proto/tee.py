@@ -41,9 +41,13 @@ class TeeFromClientProtocol(Protocol):
         self.outgoing_queue.get().addCallback(self.dataFromNetHack)
 
     def dataReceived(self, data):
-        """Data from the nethack client"""
+        """
+        Data from the nethack client
+        We should only need to send the auth data to the hud all other client data may be irrelevent
+        """
         self.incoming_queue.put(data)
-        self.hud_queue.put(data)
+        if "auth" in data:
+            self.hud_queue.put(data)
 
 
 class TeeToNetHackProtocol(Protocol):
@@ -74,12 +78,13 @@ class TeeToNetHackProtocol(Protocol):
         """
         Take data coming from the server and put it into the queue for the
         client
+        We are also doing a bit of checking to combine auth messages.
         """
         self.outgoing_queue.put(data)
         if "auth" in data and not self.authPacket:
             self.authPacket = json.loads(data)
         elif "auth" in data and self.authPacket:
-            self.authPacket.update(json.loads(data))
+            self.authPacket.update(json.loads(data)['auth'])
             self.hud_queue.put(json.dumps(self.authPacket))
 
 
@@ -94,10 +99,21 @@ class TeeToHUDProtocol(Protocol):
         """
         self.hud_queue = self.factory.hud_queue
         self.hud_queue.get().addCallback(self.dataFromTee)
+        self.user = ""
 
     def dataFromTee(self, data):
-        """Do some logic-ing here for the dual auth message thing """
-        self.transport.write(data)
+        """
+        We need to handle keeping track of users here
+        We may need to change to a faster json library
+        """
+
+        jData = json.loads(data)
+        if "auth" in data:
+            if jData['return'] > 2:
+                self.factory.users[jData['username']] = jData['connection']
+                self.user = jData['username']
+        jData['nethuduser'] = self.user
+        self.transport.write(json.dumps())
         self.hud_queue.get().addCallback(self.dataFromTee)
 
 
@@ -105,6 +121,7 @@ class TeeToHUDFactory(ClientFactory):
     protocol = TeeToHUDProtocol
 
     def __init__(self, hud_queue):
+        self.users = {}  # connectionid: username
         self.hud_queue = hud_queue
 
 
