@@ -24,6 +24,7 @@ class NethackClient(protocol.Protocol):
     def connectionMade(self):
         self.factory.register_client(self)
         self.register_call('display', 'display')
+        self.register_call('display_objects', 'objects')
         self._run_next_command()
 
     def dataReceived(self, data):
@@ -81,6 +82,10 @@ class NethackClient(protocol.Protocol):
                 del self.monsters[key]
             else:
                 print "There is a {0} at {1}".format(lookup_monster(monster), key)
+
+    def objects(self, objects):
+        for item in objects['items']:
+            print item[0]
 
     def assume_y(self, _):
         self.queue_command("yn", priority=0, **{'return': 121})
