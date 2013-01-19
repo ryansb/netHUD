@@ -87,6 +87,8 @@ class TelnetConnection(LineReceiver):
                         self.details.append(col)
                         continue
                     elif isinstance(col, list):
+                        if not isinstance(self.details[x_index], list):
+                            self.details[x_index] = []
                         for y_index, cell in enumerate(col):
                             if isinstance(cell, list) or cell == 0:
                                 self.details[x_index][y_index] = cell
