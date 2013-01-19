@@ -56,8 +56,8 @@ class TelnetConnection(LineReceiver):
             return
 
         for ret_key in data:
-            if ret_key in self.method_calls:
-                self.method_calls[ret_key](data[ret_key], user)
+            if ret_key in self.input_handlers:
+                self.input_handlers[ret_key](data[ret_key], self.uname)
 
     # Methods  to actually do something about the Nethack data
     def display(self, display_data):
