@@ -8,12 +8,14 @@ from threading import Event
 
 from twisted.internet import reactor, protocol, threads, defer
 
+from nethud.dpqueue import DeferredPriorityQueue
+
 
 class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     method_calls = {}
-    command_queue = defer.DeferredQueue()
+    command_queue = DeferredPriorityQueue()
     games_queue = defer.DeferredQueue()
 
     def connectionMade(self):
@@ -39,8 +41,8 @@ class NethackClient(protocol.Protocol):
     def _run_next_command(self):
         self.command_queue.get().addCallback(self.exec_command)
 
-    def queue_command(self, command, **kw):
-        self.command_queue.put((command, kw))
+    def queue_command(self, command, priority=10, **kw):
+        self.command_queue.put(priority, (command, kw))
 
     def exec_command(self, command_tuple):
         self.send_message(command_tuple[0], **command_tuple[1])
@@ -55,7 +57,7 @@ class NethackClient(protocol.Protocol):
 
 
     def assume_y(self, _):
-        self.send_message("yn", **{'return': 121})
+        self.queue_command("yn", priority=0, **{'return': 121})
 
     def store_current_games(self, gamelist):
         for game in gamelist['games']:
