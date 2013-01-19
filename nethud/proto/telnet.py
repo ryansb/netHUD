@@ -49,10 +49,10 @@ class TelnetConnection(LineReceiver):
             data = self.data_buffer + data
             self.data_buffer = ''
         try:
-            data = json.loads(data)
+            data = json.loads(json_data)
         except ValueError:
             # We probably just didn't get all of it
-            self.data_buffer = data
+            self.data_buffer = json_data
             return
 
         for ret_key in data:
