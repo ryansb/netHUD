@@ -106,8 +106,7 @@ class TeeToHUDController(object):
             if 'username' in jData['auth']:
                 self.user = jData['auth']['username']
 
-        if self.user != "":
-            Controller.send_message(self.user, data)
+        Controller.send_message(self.user, data)
         self.hud_queue.get().addCallback(self.dataFromTeeReceived)
 
 
