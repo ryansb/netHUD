@@ -20,7 +20,7 @@ class Controller(object):
             if 'display' in data.keys():
                 current = Controller.cached_details.get(user, dict())
                 for key in data['display']:
-                    current[key].update(data['display'][key]
+                    current[key].update(data['display'][key])
                 Controller.cached_details[user] = current
 
     @staticmethod
