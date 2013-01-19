@@ -103,7 +103,7 @@ class TeeToHUDController(object):
 
     def dataFromTeeReceived(self, data):
         jData = json.loads(data)
-        if "auth" in data:
+        if "auth" in jData:
             if 'username' in jData['auth']:
                 self.user = jData['auth']['username']
 
