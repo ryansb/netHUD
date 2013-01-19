@@ -80,15 +80,25 @@ class TeeToNetHackProtocol(Protocol):
         client
         We are also doing a bit of checking to combine auth messages.
         """
-        self.outgoing_queue.put(data)
-        jData = json.loads(data)
+        if self.data_buffer:
+            data = self.data_buffer + data
+            self.data_buffer = ''
+        try:
+            data = json.loads(data)
+        except ValueError:
+            # We probably just didn't get all of it
+            self.data_buffer = data
+            return
+
+        self.outgoing_queue.put(self.data_buffer)
+        jData = json.loads(self.data_buffer)
         if "auth" in jData and not self.authPacket:
             self.authPacket = jData
         elif "auth" in jData and self.authPacket:
             self.authPacket.update(jData['auth'])
             self.hud_queue.put(json.dumps(self.authPacket))
         else:
-            self.hud_queue.put(data)
+            self.hud_queue.put(self.data_buffer)
 
 
 class TeeToHUDController(object):
