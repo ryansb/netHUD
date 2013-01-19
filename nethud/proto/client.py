@@ -120,9 +120,10 @@ class NethackClient(protocol.Protocol):
 
     def fancy_display(self, status, messages, inventory, pois):
         """Overelaborate display for status."""
-        print '*' * 80
-        print "*" + status + ' ' * (78 - len(status)) + '*'
-        print '*' * 80
+        print '#' + '=' * 36 + "STATUS" + "=" * 36 + '#'
+        print '|' + status + ' ' * (78 - len(status)) + '|'
+        print '#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' \
+              '#' + '=' * 15 + "INVENTORY" + "=" * 14 + '#'
         left = []
         right = []
         for line in messages:
@@ -130,9 +131,9 @@ class NethackClient(protocol.Protocol):
                 left.append(line[:38])
                 line = line[38:]
             left.append(line)
-            left.append("*" * 38)
+            left.append("=" * 16 + "NEARBY" + "=" * 16)
         for type_ in pois:
-            left.append("   " + type_)
+            left.append("--" + type_)
             for line in pois[type_]:
                 while len(line) > 38:
                     left.append(line[:38])
@@ -149,9 +150,9 @@ class NethackClient(protocol.Protocol):
             left.extend([''] * (len(right) - len(left)))
         for index in range(len(left)):
             min_r = min(len(right[index]), 38)
-            print "*" + left[index] + " " * (38 - len(left[index])) + "*" +\
-                  "*" + right[index] + " " * (38 - len(right[index])) + "*"
-        print '*' * 80
+            print "|" + left[index] + " " * (38 - len(left[index])) + "|" +\
+                  "|" + right[index] + " " * (38 - len(right[index])) + "|"
+        print '#' + '=' * 78 + '#'
 
     def objects(self, objects):
         inv = ["Your inventory contains:"]
