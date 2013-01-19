@@ -4,33 +4,20 @@ An example client. Run simpleserv.py first before running this.
 from __future__ import unicode_literals
 
 import json
+from threading import Event
 
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, threads, defer
 
-
-# a client protocol
 
 class NethackClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     method_calls = {}
+    command_queue = defer.DeferredQueue()
 
     def connectionMade(self):
         self.factory.register_client(self)
-        self.command_queue = []
-        self.command_queue.append(("auth", dict(username="rossdylan",
-                                                password="herpderp")))
-        # gender = [male, female, neuter]
-        #~ self.command_queue.append(("get_pl_prompt", dict(align=-1, gend=0,
-                                                      #~ race=-1, role=-1)))
-        self.command_queue.append(("start_game", dict(alignment=0, gender=1,
-                                                      name="herpderp", race=0,
-                                                      role=0, mode=2)))
-        #~ self.command_queue.append(("list_games", dict(completed=False, limit=5, show_all=True)))
-        #~ self.command_queue.append(("get_roles", dict()))
-        #~ self.command_queue.append(("exit_game", dict(exit_type=2)))
-
-        self.exec_next_command()
+        self._run_next_command()
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
@@ -99,6 +86,25 @@ def test(factory):
         reactor.callLater(2, test, factory)
         return
     client = factory.clients[0]
+
+    # Force yn prompts to respond with y
+    client.register_call('yn', 'assume_y')
+    client.register_call('list_games', 'store_current_games')
+
+    # Create a game, then exit.
+    client.queue_command("auth", username="Qalthos", password="password")
+    client.queue_command("list_games", completed=0, limit=0, show_all=1)
+
+    def restore_or_start(gameid):
+        if gameid:
+            client.queue_command("restore_game", gameid=gameid)
+        else:
+            client.queue_command("start_game", alignment=0, gender=1,
+                                 name="herpderp", race=0, role=0, mode=2)
+        #~ client.command_queue.append(("get_drawing_info"))
+        client.queue_command("exit_game", exit_type=2)
+
+    client.games_queue.get().addCallback(restore_or_start)
 
 
 # this connects the protocol to a server runing on port 8000
