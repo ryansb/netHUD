@@ -164,6 +164,8 @@ class NethackClient(protocol.Protocol):
 
     def store_current_games(self, gamelist):
         for game in gamelist['games']:
+            if game['status'] < 0:
+                continue
             self.games_queue.put(game['gameid'])
         self.games_queue.put(False)
 
@@ -198,7 +200,8 @@ def test(factory):
     client.register_call('list_games', 'store_current_games')
 
     # Create a game, then exit.
-    client.queue_command("auth", username="Qalthos", password="password")
+    client.queue_command("auth", username="tonisbones", password="harpy")
+    #~ client.queue_command("auth", username="Qalthos", password="password")
     client.queue_command("get_drawing_info")
     client.queue_command("list_games", completed=0, limit=0, show_all=0)
 
@@ -206,7 +209,7 @@ def test(factory):
         if gameid:
             client.queue_command("restore_game", gameid=gameid)
         else:
-            client.queue_command("start_game", alignment=0, gender=1,
+            client.queue_command("start_game", alignment=0, gender=0,
                                  name="herpderp", race=0, role=0, mode=0)
 
         client.queue_command("exit_game", exit_type=1)
