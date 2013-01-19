@@ -32,7 +32,8 @@ class NethackClient(protocol.Protocol):
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
-        #~ print "Server said:", data
+        #~ print("Server said:", data)
+
         if self.data_buffer:
             data = self.data_buffer + data
             self.data_buffer = ''
@@ -48,7 +49,7 @@ class NethackClient(protocol.Protocol):
         self._run_next_command()
 
     def connectionLost(self, reason):
-        print "Connection lost"
+        print("Connection lost")
         self.factory.remove_client(self)
 
     def register_call(self, name, function):
@@ -78,7 +79,7 @@ class NethackClient(protocol.Protocol):
     def send_message(self, command, **kw):
         data = json.dumps({command: kw})
         self.transport.write(data.encode('utf8'))
-        #~ print "Client says:", data
+        #~ print("Client says:", data)
 
     # Nethack response methods
     def set_info(self, keys):
@@ -132,7 +133,7 @@ class NethackClient(protocol.Protocol):
 
     def fancy_display(self, user, status, messages, inventory, pois):
         """Overelaborate display for status."""
-        out_func = self.users[user].sendLine
+        out_func = self.users[user]
         out_func('#' + '=' * 36 + "STATUS" + "=" * 36 + '#')
         out_func('|' + status + ' ' * (78 - len(status)) + '|')
         out_func('#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' +
@@ -195,11 +196,11 @@ class NethackFactory(protocol.ClientFactory):
         client = None
 
     def clientConnectionFailed(self, connector, reason):
-        print "Connection failed - goodbye!"
+        print("Connection failed - goodbye!")
         reactor.stop()
 
     def clientConnectionLost(self, connector, reason):
-        print "Connection lost - goodbye!"
+        print("Connection lost - goodbye!")
         reactor.stop()
 
 

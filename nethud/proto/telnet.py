@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from twisted.internet import reactor, protocol, threads, defer
 from twisted.protocols.basic import LineReceiver
 
@@ -15,7 +17,7 @@ class TelnetConnection(LineReceiver):
         if self.user.user_name in self.users:
             del self.users[self.user.user_name]
         self.uname = ''
-        print reason
+        print(reason)
 
     def lineReceived(self, line):
         msg_split = line.split()
