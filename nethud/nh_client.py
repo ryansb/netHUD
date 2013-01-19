@@ -13,12 +13,7 @@ class EchoClient(protocol.Protocol):
     """Once connected, send a message, then print the result."""
 
     def connectionMade(self):
-        data = '{"register": {"email": "Qalthos@gmail.com", ' + \
-                            '"username": "Qalthos",' + \
-                            '"password": "password"}}'
-        #~ data = '{"auth": {"username": "Qalthos", "password": "password"}}'
-        print data
-        self.transport.write(data)
+        self.send_message('auth', username='Qalthos', password='password')
 
     def dataReceived(self, data):
         "As soon as any data is received, write it back."
@@ -26,6 +21,12 @@ class EchoClient(protocol.Protocol):
 
     def connectionLost(self, reason):
         print "Connection lost"
+
+    # Nethack Protocol Wrapper
+    def send_message(self, command, **kw):
+        data = json.dumps(dict(command=kw))
+        self.transport.write(data)
+
 
 class EchoFactory(protocol.ClientFactory):
     protocol = EchoClient
