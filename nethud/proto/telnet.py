@@ -22,11 +22,11 @@ class TelnetConnection(LineReceiver):
     def lineReceived(self, line):
         msg_split = line.split()
         if msg_split[0] == 'AUTH':
-            if len(msg_split[0]) != 2:
+            if len(msg_split) != 2:
                 self.sendLine("ERR 406 Invalid Parameters.")
                 return
-            self.handle_auth(msg[1])
-        elif msg[0] == 'QUIT':
+            self.handle_auth(msg_split[1])
+        elif msg_split[0] == 'QUIT':
             self.loseConnection()
         else:
             self.sendLine("ERR 452 Invalid Command")
