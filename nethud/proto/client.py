@@ -54,6 +54,10 @@ class NethackClient(protocol.Protocol):
         self.method_calls[name] = getattr(self, function)
 
     def _run_next_command(self):
+        """
+        Starts the DeferredQueue running.  This should only need to be run
+        once.
+        """
         self.command_queue.get().addCallback(self.exec_command)
 
     def queue_command(self, command, priority=10, **kw):
