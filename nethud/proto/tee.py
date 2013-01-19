@@ -33,7 +33,7 @@ class TeeFromClientProtocol(Protocol):
 
         hudToController = TeeToHUDController(self.hud_queue)
 
-        reactor.connectTCP("127.0.0.1", 53421, toNetHackFactory)
+        reactor.connectTCP("games-ng.csh.rit.edu", 53421, toNetHackFactory)
 
     def dataFromNetHack(self, data):
         """Data returned from the nethack server"""
@@ -101,11 +101,11 @@ class TeeToHUDController(object):
     def dataFromTeeReceived(self, data):
         jData = json.loads(data)
         if "auth" in data:
-            if jData['return'] > 2:
-                self.user = jData['username']
+            if 'username' in jData['auth']
+                self.user = jData['auth']['usename']
 
         if self.user != "":
-            Controller.send_msg(self.user, data)
+            Controller.send_message(self.user, data)
         self.hud_queue.get().addCallback(self.dataFromTeeReceived)
 
 
