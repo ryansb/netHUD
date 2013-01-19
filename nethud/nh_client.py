@@ -1,6 +1,7 @@
 """
 An example client. Run simpleserv.py first before running this.
 """
+from __future__ import unicode_literals
 
 import json
 
@@ -26,7 +27,7 @@ class NethackClient(protocol.Protocol):
     def send_message(self, command, **kw):
         data = json.dumps({command: kw})
         print "Client says:", data
-        self.transport.write(data)
+        self.transport.write(data.encode('utf8'))
 
 
 class NethackFactory(protocol.ClientFactory):
