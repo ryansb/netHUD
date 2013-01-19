@@ -157,9 +157,6 @@ class TelnetConnection(LineReceiver):
         self.sendLine('#' + '=' * 78 + '#')
 
 
-
-
-
 class TelnetFactory(protocol.Factory):
     def __init__(self):
         self.users = {}
