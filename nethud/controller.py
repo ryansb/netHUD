@@ -18,9 +18,10 @@ class Controller(object):
         else:
             data = json.loads(msg)
             if 'display' in data.keys():
-                if not Controller.cached_details.get(user):
-                    Controller.cached_details[user] = {}
-                Controller.cached_details[user].update(data['display'])
+                current = Controller.cached_details.get(user, list())
+                for index, update_dict in enumerate(data['display']):
+                    current[index].update(update_dict)
+                Controller.cached_details[user] = current
 
     @staticmethod
     def connect_user(user, handle_function):

@@ -84,9 +84,14 @@ class TelnetConnection(LineReceiver):
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
                     if x_index >= len(self.details):
+                        # We don't have anything here, so it should all be new
                         self.details.append(col)
                         continue
                     elif isinstance(col, list):
+                        if not isinstance(self.details[x_index], list):
+                            # If the list was not there before, it should all
+                            # be new to us
+                            self.details[x_index] = col
                         for y_index, cell in enumerate(col):
                             if isinstance(cell, list) or cell == 0:
                                 self.details[x_index][y_index] = cell
