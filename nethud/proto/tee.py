@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
+from nethud.controller import Controller
 import json
 
 
@@ -30,10 +31,9 @@ class TeeFromClientProtocol(Protocol):
         toNetHackFactory = TeeToNetHackFactory(self.incoming_queue,
                 self.outgoing_queue, self.hud_queue)
 
-        toHudFactory = TeeToHUDFactory(self.hud_queue)
+        hudToController = TeeToHUDController(self.hud_queue)
 
         reactor.connectTCP("127.0.0.1", 53421, toNetHackFactory)
-        reactor.connectTCP("127.0.0.1", 55555, toHudFactory)
 
     def dataFromNetHack(self, data):
         """Data returned from the nethack server"""
@@ -88,41 +88,25 @@ class TeeToNetHackProtocol(Protocol):
             self.hud_queue.put(json.dumps(self.authPacket))
 
 
-class TeeToHUDProtocol(Protocol):
+class TeeToHUDController(object):
     """
-    We connect to the HUD server and send it the data we recieve
+    This class is hooked in to a deferred queue which gets messages from the client and server
+    and uses controller.send_msg to push them out
     """
-
-    def connectionMade(self):
-        """
-        Called when we connect to the HUD
-        """
-        self.hud_queue = self.factory.hud_queue
-        self.hud_queue.get().addCallback(self.dataFromTee)
+    def __init__(self, hud_queue):
+        self.hud_queue = hud_queue
+        self.hud_queue.get().addCallback(self.dataFromTeeReceived)
         self.user = ""
 
-    def dataFromTee(self, data):
-        """
-        We need to handle keeping track of users here
-        We may need to change to a faster json library
-        """
-
+    def dataFromTeeReceived(self, data):
         jData = json.loads(data)
         if "auth" in data:
             if jData['return'] > 2:
-                self.factory.users[jData['username']] = jData['connection']
                 self.user = jData['username']
-        jData['nethuduser'] = self.user
-        self.transport.write(json.dumps())
-        self.hud_queue.get().addCallback(self.dataFromTee)
 
-
-class TeeToHUDFactory(ClientFactory):
-    protocol = TeeToHUDProtocol
-
-    def __init__(self, hud_queue):
-        self.users = {}  # connectionid: username
-        self.hud_queue = hud_queue
+        if self.user != "":
+            Controller.send_msg(self.user, data)
+        self.hud_queue.get().addCallback(self.dataFromTeeReceived)
 
 
 class TeeToNetHackFactory(ClientFactory):
