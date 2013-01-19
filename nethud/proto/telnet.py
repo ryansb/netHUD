@@ -18,7 +18,7 @@ class TelnetConnection(LineReceiver):
         self.input_handlers = {'display': self.display,
                                'display_objects': self.objects}
 
-        # Container for all the cool things on the level
+       # Container for all the cool things on the level
         self.details = []
 
     # Twistedy methods!
@@ -50,7 +50,7 @@ class TelnetConnection(LineReceiver):
 
     def handle_data(self, json_data):
         if self.data_buffer:
-            data = self.data_buffer + data
+            data = self.data_buffer + json_data
             self.data_buffer = ''
         try:
             data = json.loads(json_data)
