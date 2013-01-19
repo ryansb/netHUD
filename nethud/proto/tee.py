@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
+import json
+
 
 """
 NOTE: This is heavily inspired by https;//gist.github.com/1878983
 """
 #Make sure to send auth to Nethud with both the client and sever json
+
 
 class TeeFromClientProtocol(Protocol):
     """
@@ -57,6 +60,7 @@ class TeeToNetHackProtocol(Protocol):
         self.incoming_queue = self.factory.incoming_queue
         self.hud_queue = self.factory.hud_queue
         self.incoming_queue.get().addCallback(self.dataFromNetHackClient)
+        self.authPacket = None
 
     def dataFromNetHackClient(self, data):
         """
@@ -72,8 +76,11 @@ class TeeToNetHackProtocol(Protocol):
         client
         """
         self.outgoing_queue.put(data)
-        if "auth" in data:
-            self.hud_queue.put(data)
+        if "auth" in data and not self.authPacket:
+            self.authPacket = json.loads(data)
+        elif "auth" in data and self.authPacket:
+            self.authPacket.update(json.loads(data))
+            self.hud_queue.put(json.dumps(self.authPacket))
 
 
 class TeeToHUDProtocol(Protocol):
@@ -94,13 +101,11 @@ class TeeToHUDProtocol(Protocol):
         self.hud_queue.get().addCallback(self.dataFromTee)
 
 
-
 class TeeToHUDFactory(ClientFactory):
     protocol = TeeToHUDProtocol
 
     def __init__(self, hud_queue):
         self.hud_queue = hud_queue
-
 
 
 class TeeToNetHackFactory(ClientFactory):
@@ -110,7 +115,6 @@ class TeeToNetHackFactory(ClientFactory):
         self.incoming_queue = incoming_queue
         self.outgoing_queue = outgoing_queue
         self.hud_queue = hud_queue
-
 
 
 ### Testing shitz go after this point ###
