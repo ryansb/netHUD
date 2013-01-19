@@ -71,17 +71,12 @@ class TelnetConnection(LineReceiver):
         This interprets `display` objects and tries to pass that information
         on to the user.
         """
-
-        status_line = ''
         messages = []
         pois = defaultdict(list)
 
         for packet in display_data:
             if packet.get('update_status'):
                 self.status.update(packet['update_status'])
-                status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
-                    .format(*map(lambda x: self.status.get(x),
-                    ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
             if packet.get('update_screen'):
                 for x_index, col in enumerate(packet['update_screen']['dbuf']):
                     if x_index >= len(self.details):
@@ -106,6 +101,10 @@ class TelnetConnection(LineReceiver):
                 messages.append(packet['raw_print'])
             if packet.get('list_items'):
                 self.inventory = self.objects(packet['list_items'])
+
+        status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
+            .format(*map(lambda x: self.status.get(x),
+            ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
 
         for x_index, col in enumerate(self.details):
             if isinstance(col, list):
