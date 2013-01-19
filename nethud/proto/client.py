@@ -196,10 +196,10 @@ class NethackFactory(protocol.ClientFactory):
     client = None
 
     def register_client(self, client):
-        client = client
+        NethackFactory.client = client
 
     def remove_client(self, client):
-        client = None
+        NethackFactory.client = None
 
     def clientConnectionFailed(self, connector, reason):
         print("Connection failed - goodbye!")
@@ -211,10 +211,10 @@ class NethackFactory(protocol.ClientFactory):
 
 
 def test(factory):
-    if not factory.client:
+    if not NethackFactory.client:
         reactor.callLater(2, test, factory)
         return
-    client = factory.client
+    client = NethackFactory.client
 
     # Force yn prompts to respond with y
     client.register_call('yn', 'assume_y')
