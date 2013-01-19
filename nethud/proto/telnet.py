@@ -14,7 +14,7 @@ class TelnetConnection(LineReceiver):
         self.uname = ''
         self.auth = False
         self.data_buffer = ''
-        input_handlers = {'display': self.display,
+        self.input_handlers = {'display': self.display,
                           'display_objects': self.objects}
 
     # Twistedy methods!
