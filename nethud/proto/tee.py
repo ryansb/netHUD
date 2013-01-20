@@ -8,11 +8,28 @@ try:
 except:
     import json
 
-
 """
+tee.py
+nethud.proto.tee
+
+tee.py acts kinda like a tee and copies all data going acrossed a connection
+between the a nethack client and the nethack server. It will do a tiny bit of
+processing to add a username to every message copied and sent through the tee
+
+
+[Nethack Server]
+    ----
+    |  |
+    |  |_______
+    |   _______| [NetHUD] (NOTE: the NetHUD bit is replacable)
+    |  |
+    |  |
+    ----
+[Nethack Client]
+
+
 NOTE: This is heavily inspired by https://gist.github.com/1878983
 """
-#Make sure to send auth to Nethud with both the client and sever json
 
 
 class TeeFromClientProtocol(Protocol):
@@ -34,9 +51,12 @@ class TeeFromClientProtocol(Protocol):
 
         toNetHackFactory = TeeToNetHackFactory(self.incoming_queue,
                 self.outgoing_queue, self.hud_queue)
+        # This factory is used to spin up connections to the actual nethack
+        # server
 
         hudToController = TeeToHUDController(self.hud_queue)
-
+        # this obeject is used to forward all of our messages in the hud_queue
+        # out of the telnet server
         reactor.connectTCP("games-ng.csh.rit.edu", 53421, toNetHackFactory)
 
     def dataFromNetHack(self, data):
@@ -47,7 +67,8 @@ class TeeFromClientProtocol(Protocol):
     def dataReceived(self, data):
         """
         Data from the nethack client
-        We should only need to send the auth data to the hud all other client data may be irrelevent
+        We should only need to send the auth data to the hud all other client
+        data may be irrelevent
         """
         self.incoming_queue.put(data)
         if "auth" in data:
@@ -108,7 +129,8 @@ class TeeToNetHackProtocol(Protocol):
 
 class TeeToHUDController(object):
     """
-    This class is hooked in to a deferred queue which gets messages from the client and server
+    This class is hooked in to a deferred queue which gets messages from the
+    client and server
     and uses controller.send_msg to push them out
     """
     def __init__(self, hud_queue):
