@@ -2,7 +2,11 @@ from __future__ import unicode_literals
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from nethud.controller import Controller
-import json
+
+try:
+    import ultrajson as json
+except:
+    import json
 
 
 """

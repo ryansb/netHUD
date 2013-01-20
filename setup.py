@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import sys, os
+
 
 version = '0.1'
 
@@ -8,7 +8,7 @@ setup(name='netHUD',
       description="mustached octo dangerzone",
       long_description="""\
 """,
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[],  # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='ryansb, rossdylan, oddshocks, and qalthos',
       author_email='',
@@ -20,6 +20,7 @@ setup(name='netHUD',
       install_requires=[
           # -*- Extra requirements: -*-
           'twisted',
+          'ultrajson',
       ],
       entry_points="""
       # -*- Entry points: -*-

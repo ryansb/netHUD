@@ -5,7 +5,7 @@ from twisted.application.internet import TCPServer
 from twisted.internet.protocol import Factory
 
 from nethud.proto.tee import TeeFromClientProtocol
-from nethud.proto.telnet import TelnetConnection, TelnetFactory
+from nethud.proto.telnet import TelnetFactory
 
 
 class TeeService(service.Service):

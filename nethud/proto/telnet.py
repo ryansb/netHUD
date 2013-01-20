@@ -1,9 +1,12 @@
 from __future__ import print_function
 from collections import defaultdict
 
-import json
+try:
+    import ultrajson as json
+except:
+    import json
 
-from twisted.internet import reactor, protocol, threads, defer
+from twisted.internet import protocol
 from twisted.protocols.basic import LineReceiver
 
 from nethud.controller import Controller
@@ -178,4 +181,4 @@ class TelnetFactory(protocol.Factory):
         self.users = {}
 
     def buildProtocol(self, addr):
-        return TelnetConnection(users = self.users)
+        return TelnetConnection(users=self.users)
