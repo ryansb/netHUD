@@ -21,7 +21,7 @@ class Controller(object):
                 Controller.users[user](msg)
             except Exception as e:
                 print e
-                client.captureException(sys.exec_info())
+                client.captureException(sys.exc_info())
         else:
             data = json.loads(msg)
             if 'display' in data.keys():
@@ -32,7 +32,8 @@ class Controller(object):
                     Controller.cached_details[user] = current
                 except Exception as e:
                     print e
-                    client.captureException(sys.exec_info())
+                    client.captureException(sys.exc_info())
+                    sys.exc_info()
 
     @staticmethod
     def connect_user(user, handle_function):
