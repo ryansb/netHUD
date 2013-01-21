@@ -25,15 +25,18 @@ class Controller(object):
         else:
             data = json.loads(msg)
             if 'display' in data.keys():
-                current = Controller.cached_details.get(user, list())
-                for index, update_dict in enumerate(data['display']):
-                    current[index].update(update_dict)
-                Controller.cached_details[user] = current
+                try:
+                    current = Controller.cached_details.get(user, list())
+                    for index, update_dict in enumerate(data['display']):
+                        current[index].update(update_dict)
+                    Controller.cached_details[user] = current
+                except Exception as e:
+                    print e
+                    client.captureException(sys.exec_info)
 
     @staticmethod
     def connect_user(user, handle_function):
         Controller.users[user] = handle_function
-        client.captureMessage("{} has connected".format(user))
 
     @staticmethod
     def disconnect_user(user):

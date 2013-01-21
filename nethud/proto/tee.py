@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Protocol, ClientFactory, Factory
 from nethud.controller import Controller
-from raven import Client
 
 try:
     import ultrajson as json
@@ -32,8 +31,6 @@ processing to add a username to every message copied and sent through the tee
 NOTE: This is heavily inspired by https://gist.github.com/1878983
 """
 
-
-client = Client('http://b0d59e11ee8947fb975b7b99484e6975:8c0c35f542534da9a8f3fb46493bcd70@nethud.csh.rit.edu/2')
 
 
 class TeeFromClientProtocol(Protocol):
@@ -95,7 +92,6 @@ class TeeToNetHackProtocol(Protocol):
         self.incoming_queue.get().addCallback(self.dataFromNetHackClient)
         self.data_buffer = ""
         self.authPacket = None
-        client.captureMessage("NetHack Client has connected")
 
     def dataFromNetHackClient(self, data):
         """
