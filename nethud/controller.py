@@ -2,6 +2,9 @@ try:
     import ultrajson as json
 except ImportError:
     import json
+from raven import Client
+from sys import exec_info
+client = Client('http://b0d59e11ee8947fb975b7b99484e6975:8c0c35f542534da9a8f3fb46493bcd70@nethud.csh.rit.edu/2')
 
 
 class Controller(object):
@@ -14,7 +17,10 @@ class Controller(object):
         if user in Controller.users:
             if Controller.cached_details.get(user):
                 Controller.users[user](Controller.cached_details.get(user))
-            Controller.users[user](msg)
+            try:
+                Controller.users[user](msg)
+            except:
+                client.captureException(exec_info())
         else:
             data = json.loads(msg)
             if 'display' in data.keys():
@@ -26,10 +32,14 @@ class Controller(object):
     @staticmethod
     def connect_user(user, handle_function):
         Controller.users[user] = handle_function
+        client.captureMessage("{} has connected".format(user))
 
     @staticmethod
     def disconnect_user(user):
-        del Controller.users[user]
+        try:
+            del Controller.users[user]
+        except:
+            client.captureException(exec_info())
 
     @staticmethod
     def store_legend(legend_data):

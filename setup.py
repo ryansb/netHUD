@@ -21,6 +21,7 @@ setup(name='netHUD',
           # -*- Extra requirements: -*-
           'twisted',
           'ultrajson',
+          'raven',
       ],
       entry_points="""
       # -*- Entry points: -*-
