@@ -3,7 +3,7 @@ try:
 except ImportError:
     import json
 from raven import Client
-from sys import exec_info
+import sys
 client = Client('http://b0d59e11ee8947fb975b7b99484e6975:8c0c35f542534da9a8f3fb46493bcd70@nethud.csh.rit.edu/2')
 
 
@@ -21,7 +21,7 @@ class Controller(object):
                 Controller.users[user](msg)
             except Exception as e:
                 print e
-                client.captureException(exec_info())
+                client.captureException(sys.exec_info())
         else:
             data = json.loads(msg)
             if 'display' in data.keys():
@@ -41,7 +41,7 @@ class Controller(object):
             del Controller.users[user]
         except Exception as e:
             print e
-            client.captureException(exec_info())
+            client.captureException(sys.exec_info())
 
     @staticmethod
     def store_legend(legend_data):
