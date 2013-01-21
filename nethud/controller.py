@@ -22,7 +22,7 @@ class LevelDetails(object):
 
     def list_items(self, items):
         if items['invent'] == 1:
-            display['list_items'] = items['items']
+            self.display['list_items'] = items['items']
 
     def update_screen(self, mapdelta):
         try:
