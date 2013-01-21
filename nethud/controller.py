@@ -32,7 +32,7 @@ class Controller(object):
                     Controller.cached_details[user] = current
                 except Exception as e:
                     print e
-                    client.captureException(sys.exec_info)
+                    client.captureException(sys.exec_info())
 
     @staticmethod
     def connect_user(user, handle_function):
