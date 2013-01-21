@@ -19,7 +19,8 @@ class Controller(object):
                 Controller.users[user](Controller.cached_details.get(user))
             try:
                 Controller.users[user](msg)
-            except:
+            except Exception as e:
+                print e
                 client.captureException(exec_info())
         else:
             data = json.loads(msg)
@@ -38,7 +39,8 @@ class Controller(object):
     def disconnect_user(user):
         try:
             del Controller.users[user]
-        except:
+        except Exception as e:
+            print e
             client.captureException(exec_info())
 
     @staticmethod
