@@ -26,7 +26,10 @@ application = service.Application('nethud')
 s = TeeService()
 
 serviceCollection = service.IServiceCollection(application)
-TCPServer(12435, s.getFactory(), interface="0.0.0.0"
+TCPServer(53421, s.getFactory(), interface="0.0.0.0"
+          ).setServiceParent(serviceCollection)
+
+TCPServer(53421, s.getFactory(), interface="::1"
           ).setServiceParent(serviceCollection)
 
 tns = TelnetService()
