@@ -137,7 +137,10 @@ class TelnetConnection(LineReceiver):
                     line = line[38:]
                 left.append(line)
         for line in inventory:
-            line = "{0}: {1} ({2})".format(chr(line[8]), chr(line[9]), line[0])
+            if line[2] == 1:
+                line = "{0}: {1} ({2})".format(chr(line[8]), chr(line[9]), line[0])
+            else:
+                line = ' {0}'.format(line[0])
             while len(line) > 38:
                 right.append(line[:38])
                 line = line[38:]
