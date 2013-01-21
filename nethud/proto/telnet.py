@@ -20,11 +20,6 @@ class TelnetConnection(LineReceiver):
         self.data_buffer = ''
         self.input_handlers = {'display': self.display,
                                'display_objects': self.objects}
-        self.status = {}
-        self.inventory = []
-
-       # Container for all the cool things on the level
-        self.details = []
 
     # Twistedy methods!
     def connectionLost(self, reason):
@@ -74,28 +69,14 @@ class TelnetConnection(LineReceiver):
         This interprets `display` objects and tries to pass that information
         on to the user.
         """
+        cache = Controller.cached_details[self.uname]
+        status = cache.get('update_status')
+        details = cache.get('update_screen')
+        inventory = cache.get('list_items')
         messages = []
         pois = defaultdict(list)
 
         for packet in display_data:
-            if packet.get('update_status'):
-                self.status.update(packet['update_status'])
-            if packet.get('update_screen'):
-                for x_index, col in enumerate(packet['update_screen']['dbuf']):
-                    if x_index >= len(self.details):
-                        # We don't have anything here, so it should all be new
-                        self.details.append(col)
-                        continue
-                    elif isinstance(col, list):
-                        if not isinstance(self.details[x_index], list):
-                            # If the list was not there before, it should all
-                            # be new to us
-                            self.details[x_index] = col
-                        for y_index, cell in enumerate(col):
-                            if isinstance(cell, list) or cell == 0:
-                                self.details[x_index][y_index] = cell
-                    elif col == 0:
-                        self.details[x_index] = col
             if packet.get('print_message'):
                 messages.append(packet['print_message']['msg'])
             #~ if packet.get('print_message_nonblocking'):
@@ -106,10 +87,10 @@ class TelnetConnection(LineReceiver):
                 self.inventory = self.objects(packet['list_items'])
 
         status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
-            .format(*map(lambda x: self.status.get(x),
+            .format(*map(lambda x: status.get(x),
             ['rank', 'plname', 'gold', 'xp', 'hp', 'hpmax']))
 
-        for x_index, col in enumerate(self.details):
+        for x_index, col in enumerate(details):
             if isinstance(col, list):
                 for y_index, cell in enumerate(col):
                     if isinstance(cell, list):
@@ -119,7 +100,7 @@ class TelnetConnection(LineReceiver):
                                 thing = key_type[cell[index]][0]
                                 pois[key_type[0]].append("There is a {0} ({1}) at {2},{3}"
                                     .format(char, thing, x_index, y_index))
-        self.fancy_display(status_line, messages, self.inventory, pois)
+        self.fancy_display(status_line, messages, inventory, pois)
 
     def objects(self, objects):
         """
