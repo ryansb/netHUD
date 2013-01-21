@@ -84,7 +84,8 @@ class TelnetConnection(LineReceiver):
             if packet.get('raw_print'):
                 messages.append(packet['raw_print'])
             if packet.get('list_items') and packet['list_items']['invent'] == 0:
-                messages.extend(packet['list_items']['items'])
+                for item in packet['list_items']['items']
+                    messages.append(item[0])
 
         status_line = "{0} {1} has {2} gold, {3} xp, and {4}/{5} hp " \
             .format(*map(lambda x: status.get(x),
