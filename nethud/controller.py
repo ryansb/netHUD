@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 try:
     import ultrajson as json
 except ImportError:
@@ -64,22 +66,18 @@ class LevelDetails(object):
 
 class Controller(object):
     users = {}
-    cached_details = {}
+    cached_details = defaultdict(LevelDetails)
     detail_keys = [None] * 10
 
     @staticmethod
     def send_message(user, msg):
+        data = json.loads(msg)
+        if 'display' in data.keys():
+            current = Controller.cached_details[user]
+            current.update(data['display'])
+            Controller.cached_details[user] = current
         if user in Controller.users:
-            if Controller.cached_details.get(user):
-                Controller.users[user](Controller.cached_details.get(user))
             Controller.users[user](msg)
-        else:
-            data = json.loads(msg)
-            if 'display' in data.keys():
-                current = Controller.cached_details.get(user, list())
-                for index, update_dict in enumerate(data['display']):
-                    current[index].update(update_dict)
-                Controller.cached_details[user] = current
 
     @staticmethod
     def connect_user(user, handle_function):
