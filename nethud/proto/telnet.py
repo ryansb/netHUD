@@ -186,12 +186,12 @@ class TelnetConnection(LineReceiver):
             output.append(sidechar + string[:maxwidth] + sidechar)
             string = string[maxwidth:]
         if center:
-            offset = (len(string) - maxwidth) / 2
-            output.append(sidechar + padchar * int(offset) + string +
-                          padchar * int(offset + .5) + sidechar)
+            offset = (maxwidth - len(string)) / 2
+            output.append(sidechar + (padchar * int(offset)) + string +
+                          (padchar * int(offset + .5)) + sidechar)
         else:
-            offset = len(string) - maxwidth
-            output.append(sidechar + string + padchar * offset + sidechar)
+            offset = maxwidth - len(string)
+            output.append(sidechar + string + (padchar * offset) + sidechar)
         return output
 
 
