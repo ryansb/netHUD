@@ -14,6 +14,7 @@ from nethud.controller import Controller
 
 class TelnetConnection(LineReceiver):
     def __init__(self, users):
+        self.width = 80
         self.users = users
         self.uname = ''
         self.auth = False
@@ -36,6 +37,11 @@ class TelnetConnection(LineReceiver):
                 self.sendLine("ERR 406 Invalid Parameters.")
                 return
             self.handle_auth(msg_split[1])
+        elif msg_split[0] == 'WIDTH':
+            try:
+                self.width = int(msg_split[1])
+            except:
+                self.sendLine("ERR 406 Invalid Parameters.")
         elif msg_split[0] == 'QUIT':
             self.transport.loseConnection()
         else:
