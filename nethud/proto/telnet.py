@@ -161,14 +161,13 @@ class TelnetConnection(LineReceiver):
             left = mdisplay + ndisplay
             right = idisplay
             if len(left) > len(right):
-                right.extend([''] * (len(left) - len(right)))
+                difference = len(left) - len(right)
+                right.extend(self.make_string('', '|', ' ', padding) * difference)
             elif len(left) < len(right):
-                left.extend([''] * (len(right) - len(left)))
+                difference = len(right) - len(left)
+                left.extend(self.make_string('', '|', ' ', padding) * difference)
             for index in range(len(left)):
-                min_r = min(len(right[index]), 38)
-                output.append("|" + left[index] + " " * (38 - len(left[index])) + "|" +
-                              "|" + right[index] + " " * (38 - len(right[index])) + "|")
-            output.append('#' + '=' * 78 + '#')
+                output.append(left[index] + right[index])
         else:
             output.extend(mdisplay)
             output.extend(ndisplay)
