@@ -173,6 +173,8 @@ class TelnetConnection(LineReceiver):
             output.extend(ndisplay)
             output.extend(idisplay)
 
+        output.extend(self.make_string('', '#', '=', self.width-2))
+
         # But first, make sure the screen is clear!
         for i in range(30):
             self.sendLine('')
