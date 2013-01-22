@@ -150,7 +150,7 @@ class TelnetConnection(LineReceiver):
                 line = "{0}: {1} ({2})".format(chr(line[8]), chr(line[9]), line[0])
             else:
                 line = ' {0}'.format(line[0])
-            idisplay.extend(self.make_string(line, '|', ' ', padding)
+            idisplay.extend(self.make_string(line, '|', ' ', padding))
 
         if self.width >= 90:
             # Three column display
