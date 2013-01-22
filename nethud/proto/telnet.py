@@ -155,7 +155,18 @@ class TelnetConnection(LineReceiver):
         if self.width >= 90:
             # Three column display
             #TODO
-            pass
+            longest = max(len(mdisplay), len(ndisplay), len(idisplay))
+            if len(mdisplay) < longest:
+                difference = longest - len(mdisplay)
+                mdisplay.extend(self.make_string('', '|', ' ', padding) * difference)
+            if len(ndisplay) < longest:
+                difference = longest - len(ndisplay)
+                ndisplay.extend(self.make_string('', '|', ' ', padding) * difference)
+            if len(idisplay) < longest:
+                difference = longest - len(idisplay)
+                idisplay.extend(self.make_string('', '|', ' ', padding) * difference)
+            for index in range(longest):
+                output.append(ndisplay[index] + mdisplay[index] + idisplay[index])
         elif self.width >= 60:
             # Two column display
             left = mdisplay + ndisplay
