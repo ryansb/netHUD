@@ -123,49 +123,76 @@ class TelnetConnection(LineReceiver):
     def fancy_display(self, status, messages, inventory, pois):
         """Overelaborate display for status."""
         output = []
-        output.append('#' + '=' * 36 + "STATUS" + "=" * 36 + '#')
-        output.append('|' + status + ' ' * (78 - len(status)) + '|')
-        output.append('#' + '=' * 15 + "MESSAGES" + "=" * 15 + '#' +
-                      '#' + '=' * 15 + "INVENTORY" + "=" * 14 + '#')
-        left = []
-        right = []
+        padding = self.width - 2
+        output.extend(self.make_string('STATUS', '#', '=', padding, True))
+        output.extend(self.make_string(status, '|', ' ', padding))
+
+        if self.width >= 90:
+            # Try having three columns
+            padding = padding / 3
+        elif self.width >= 60:
+            # We'll be using two columns
+            padding = padding / 2
+
+        mdisplay = self.make_string("MESSAGES", '#', '=', padding, True)
         for line in messages:
-            while len(line) > 38:
-                left.append(line[:38])
-                line = line[38:]
-            left.append(line)
-        left.append("=" * 16 + "NEARBY" + "=" * 16)
+            mdisplay.extend(self.make_string(line, '|', ' ', padding))
+
+        ndisplay = self.make_string('NEARBY', '#', '=', padding, True)
         for type_ in pois:
-            left.append("--" + type_)
+            ndisplay.extend(self.make_string("--" + type_, '|', ' ', padding))
             for line in pois[type_]:
-                while len(line) > 38:
-                    left.append(line[:38])
-                    line = line[38:]
-                left.append(line)
+                ndisplay.extend(self.make_string(line, '|', ' ', padding))
+
+        idisplay = self.make_string('INVENTORY', '#', '=', padding, True)
         for line in inventory:
             if line[2] == 1:
                 line = "{0}: {1} ({2})".format(chr(line[8]), chr(line[9]), line[0])
             else:
                 line = ' {0}'.format(line[0])
-            while len(line) > 38:
-                right.append(line[:38])
-                line = line[38:]
-            right.append(line)
-        if len(left) > len(right):
-            right.extend([''] * (len(left) - len(right)))
-        elif len(left) < len(right):
-            left.extend([''] * (len(right) - len(left)))
-        for index in range(len(left)):
-            min_r = min(len(right[index]), 38)
-            output.append("|" + left[index] + " " * (38 - len(left[index])) + "|" +
-                          "|" + right[index] + " " * (38 - len(right[index])) + "|")
-        output.append('#' + '=' * 78 + '#')
+            idisplay.extend(self.make_string(line, '|', ' ', padding)
+
+        if self.width >= 90:
+            # Three column display
+            #TODO
+            pass
+        elif self.width >= 60:
+            # Two column display
+            left = mdisplay + ndisplay
+            right = idisplay
+            if len(left) > len(right):
+                right.extend([''] * (len(left) - len(right)))
+            elif len(left) < len(right):
+                left.extend([''] * (len(right) - len(left)))
+            for index in range(len(left)):
+                min_r = min(len(right[index]), 38)
+                output.append("|" + left[index] + " " * (38 - len(left[index])) + "|" +
+                              "|" + right[index] + " " * (38 - len(right[index])) + "|")
+            output.append('#' + '=' * 78 + '#')
+        else:
+            output.extend(mdisplay)
+            output.extend(ndisplay)
+            output.extend(idisplay)
 
         # But first, make sure the screen is clear!
         for i in range(30):
             self.sendLine('')
         for line in output:
             self.sendLine(line.encode('utf8'))
+
+    def make_string(self, string, sidechar, padchar, maxwidth, center=False):
+        output = []
+        while len(string) > maxwidth:
+            output.append(sidechar + string[:maxwidth] + sidechar)
+            string = string[maxwidth:]
+        if center:
+            offset = (len(string) - maxwidth) / 2
+            output.append(sidechar + padchar * int(offset) + string +
+                          padchar * int(offset + .5) + sidechar)
+        else:
+            offset = len(string) - maxwidth
+            output.append(sidechar + string + padchar * offset + sidechar)
+        return output
 
 
 class TelnetFactory(protocol.Factory):
