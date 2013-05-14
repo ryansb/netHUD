@@ -20,7 +20,7 @@ setup(name='netHUD',
       install_requires=[
           # -*- Extra requirements: -*-
           'twisted',
-          'ultrajson',
+          'ujson',
           'raven',
       ],
       entry_points="""
